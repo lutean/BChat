@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "242172463375",
+    "firebase_url": "https://bchat-a89ef.firebaseio.com",
+    "project_id": "bchat-a89ef",
+    "storage_bucket": "bchat-a89ef.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:242172463375:android:8096cbb8d670254b",
+        "android_client_info": {
+          "package_name": "com.prepod.bchat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "242172463375-olfk8vdk7b7nk2g5afjpi48sdtamlp8e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.prepod.bchat",
+            "certificate_hash": "EA1643CA71D50D7ADF963812BD24FE99E206290A"
+          }
+        },
+        {
+          "client_id": "242172463375-thq6p778lecmi4i691e3b2r4rf8ou9eu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAM-rfkDZM_tTzIx8kswzSW9N3VrcmZ-I4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "242172463375-thq6p778lecmi4i691e3b2r4rf8ou9eu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
