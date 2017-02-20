@@ -16,13 +16,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.auth.api.Auth;
-import com.google.android.gms.auth.api.signin.GoogleSignInApi;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,15 +32,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import org.w3c.dom.Text;
-
 public class MainActivity extends AppCompatActivity {
 
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
     private GoogleApiClient googleApiClient;
     private DatabaseReference firebaseDatabaseRefer;
-    private FirebaseRecyclerAdapter<Message, MessageViewHolder> firebaseRecyclerAdapter;
+    private CustomFireBaseRecyclerAdapter<Room, RoomsViewHolder> firebaseRecyclerAdapter;
     private String userName;
     private String userAvatar;
     private Toolbar toolbar;
@@ -60,8 +57,6 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         recyclerView = (RecyclerView) findViewById(R.id.messageRecyclerView);
-        sendBtn = (Button) findViewById(R.id.sendButton);
-        messageTxt = (EditText) findViewById(R.id.messageEditText);
 
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
@@ -88,24 +83,33 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setStackFromEnd(true);
+        linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        //linearLayoutManager.setStackFromEnd(true);
 
-        firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<Message, MessageViewHolder>(
-                Message.class,
-                R.layout.item_message,
-                MessageViewHolder.class,
-                firebaseDatabaseRefer.child(Consts.MESSAGES_CHILD)
+        firebaseRecyclerAdapter = new CustomFireBaseRecyclerAdapter<Room, RoomsViewHolder>(
+                Room.class,
+                R.layout.item_room,
+                RoomsViewHolder.class,
+                firebaseDatabaseRefer.child(Consts.ROOMS_CHILD),
+                new OnRoomItemClick() {
+                    @Override
+                    public void onClick(int position) {
+                       // Log.v("My" , "");
+                        Intent intent = new Intent(MainActivity.this, RoomActivity.class);
+                        intent.putExtra("room", firebaseRecyclerAdapter.getRef(position).getKey());
+                        startActivity(intent);
+                    }
+                }
         ) {
             @Override
-            protected void populateViewHolder(MessageViewHolder viewHolder, Message model, int position) {
-                viewHolder.messangerTxt.setText(model.getName());
-                viewHolder.messageTxt.setText(model.getText());
-                if (model.getUserAvavatar() != null){
+            protected void populateViewHolder(RoomsViewHolder viewHolder, Room model, int position) {
+                viewHolder.titleTxt.setText(model.getTitle());
+                viewHolder.lastMessage.setText(model.getLastMessage());
+               /* if (model.getUserAvavatar() != null){
                     Glide.with(MainActivity.this)
                             .load(model.getUserAvavatar())
                             .into(viewHolder.userAvatar);
-                }
+                }*/
             }
         };
 
@@ -126,39 +130,39 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(firebaseRecyclerAdapter);
 
-        messageTxt.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                if (charSequence.toString().trim().length() > 0){
-                    sendBtn.setEnabled(true);
-                } else {
-                    sendBtn.setEnabled(false);
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-
-            }
-        });
-
-        sendBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Message message = new Message();
-                message.setName(userName);
-                message.setText(messageTxt.getText().toString());
-                message.setUserAvavatar(userAvatar);
-                firebaseDatabaseRefer.child(Consts.MESSAGES_CHILD)
-                        .push().setValue(message);
-                messageTxt.setText("");
-            }
-        });
+//        messageTxt.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+//                if (charSequence.toString().trim().length() > 0){
+//                    sendBtn.setEnabled(true);
+//                } else {
+//                    sendBtn.setEnabled(false);
+//                }
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable editable) {
+//
+//            }
+//        });
+//
+//        sendBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Message message = new Message();
+//                message.setName(userName);
+//                message.setText(messageTxt.getText().toString());
+//                message.setUserAvavatar(userAvatar);
+//                firebaseDatabaseRefer.child(Consts.MESSAGES_CHILD)
+//                        .push().setValue(message);
+//                messageTxt.setText("");
+//            }
+//        });
 
         firebaseDatabaseRefer.child(Consts.MESSAGES_CHILD).addValueEventListener(new ValueEventListener() {
             @Override
@@ -193,18 +197,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public static class MessageViewHolder extends RecyclerView.ViewHolder{
+    public static class RoomsViewHolder extends RecyclerView.ViewHolder{
 
         public ImageView userAvatar;
-        public TextView messageTxt;
-        public TextView messangerTxt;
+        public TextView titleTxt;
+        public TextView lastMessage;
+        public TextView lastMessageDate;
+        public LinearLayout itemRoomLayout;
+        private OnRoomItemClick lisener;
 
-        public MessageViewHolder(View itemView) {
+        public RoomsViewHolder(View itemView, final OnRoomItemClick listener) {
             super(itemView);
-
-            userAvatar = (ImageView) itemView.findViewById(R.id.userAvatar);
-            messageTxt = (TextView) itemView.findViewById(R.id.messageTextView);
-            messangerTxt = (TextView) itemView.findViewById(R.id.messengerTextView);
+            this.lisener = listener;
+            titleTxt = (TextView) itemView.findViewById(R.id.roomTitleTextView);
+            lastMessage = (TextView) itemView.findViewById(R.id.lastMessageTextView);
+            itemRoomLayout = (LinearLayout) itemView.findViewById(R.id.itemRoom);
+            itemRoomLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onClick(getAdapterPosition());
+                }
+            });
         }
     }
 }

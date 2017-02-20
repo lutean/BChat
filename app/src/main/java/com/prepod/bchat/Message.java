@@ -8,6 +8,16 @@ public class Message {
     private String text;
     private long timeStamp;
 
+    public Message(){
+
+    }
+
+    public Message(String name, String userAvavatar, String text) {
+        this.name = name;
+        this.userAvavatar = userAvavatar;
+        this.text = text;
+    }
+
     public String getId() {
         return id;
     }
