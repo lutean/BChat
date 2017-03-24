@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -73,12 +74,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private LinearLayoutManager linearLayoutManager;
 
+    private  String sharedUrl;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            if ("text/plain".equals(type)) {
+                sharedUrl = intent.getStringExtra(Intent.EXTRA_TEXT);
+            }
+        }
+                toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -201,6 +213,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         Intent intent = new Intent(MainActivity.this, RoomActivity.class);
                         intent.putExtra("room", firebaseRecyclerAdapter.getRef(position).getKey());
                         intent.putExtra("title", firebaseRecyclerAdapter.getItem(position).getTitle());
+                        if (sharedUrl != null){
+                            intent.putExtra("sharedUrl", sharedUrl);
+                        }
                         Log.i("My!", "Room selected " + firebaseRecyclerAdapter.getItem(position).getTitle());
                         startActivity(intent);
                     }
@@ -369,6 +384,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Palette createPaletteSync(Bitmap bitmap) {
         Palette p = Palette.from(bitmap).generate();
         return p;
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        String action = intent.getAction();
+        String type = intent.getType();
+
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+            if ("text/plain".equals(type)) {
+                sharedUrl = intent.getStringExtra(Intent.EXTRA_TEXT);
+            }
+        }
     }
 
     public static class RoomsViewHolder extends RecyclerView.ViewHolder{

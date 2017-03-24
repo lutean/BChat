@@ -70,6 +70,8 @@ public class RoomActivity extends AppCompatActivity {
     private ArrayList<User> usersList = new ArrayList<>();
     private List<Message> messageList = new ArrayList<>();
 
+    private  String sharedUrl;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +91,7 @@ public class RoomActivity extends AppCompatActivity {
         });
 
         roomName = getIntent().getExtras().get("room").toString();
+        sharedUrl = getIntent().getExtras().getString("sharedUrl");
         Log.i("My!", "Room in " + roomName);
 
         TextView titleTxt = (TextView) findViewById(R.id.textTitle);
@@ -197,6 +200,7 @@ public class RoomActivity extends AppCompatActivity {
 //        });
 
         mMessageEditText = (EditText) findViewById(R.id.messageEditText);
+        if (sharedUrl != null) mMessageEditText.setText(sharedUrl);
 //        mMessageEditText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(mSharedPreferences
 //                .getInt(CodelabPreferences.FRIENDLY_MSG_LENGTH, DEFAULT_MSG_LENGTH_LIMIT))});
         mMessageEditText.addTextChangedListener(new TextWatcher() {
@@ -229,11 +233,12 @@ public class RoomActivity extends AppCompatActivity {
                 String imgUrl = parseImage(text);
                 if (!imgUrl.equals("")){
                     message.setImgUrl(imgUrl);
-                    if (text.equals(imgUrl)) text = "";
+                    String newText = text.replace(imgUrl, "");
+                    message.setText(newText);
                 } else {
                     message.setImgUrl("");
+                    message.setText(text);
                 }
-                message.setText(text);
                 roomReference.push().setValue(message);
                 mMessageEditText.setText("");
 
@@ -372,5 +377,15 @@ public class RoomActivity extends AppCompatActivity {
         super.onDestroy();
         databaseReference.child("rooms_members").child(roomName).child(firebaseUser.getUid()).setValue(false);
         updateUser("");
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        roomName = intent.getExtras().get("room").toString();
+        sharedUrl = intent.getExtras().getString("sharedUrl");  
+        if (sharedUrl != null) {
+            if (mMessageEditText != null) mMessageEditText.setText(sharedUrl);
+        }
     }
 }

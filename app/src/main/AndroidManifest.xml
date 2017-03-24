@@ -10,11 +10,13 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.MainActivity">
+        <activity android:name=".activities.MainActivity" android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
             </intent-filter>
         </activity>
         <activity
@@ -23,7 +25,7 @@
         <activity android:name=".activities.TestActivity" />
         <activity
             android:name=".activities.RoomActivity"
-            android:launchMode="singleInstance" />
+            android:launchMode="singleTask" />
         <activity android:name=".activities.UsersListActivity"></activity>
     </application>
 
