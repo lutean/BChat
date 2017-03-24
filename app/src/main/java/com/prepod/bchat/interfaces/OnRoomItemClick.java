@@ -1,4 +1,4 @@
-package com.prepod.bchat;
+package com.prepod.bchat.interfaces;
 
 public interface OnRoomItemClick {
 

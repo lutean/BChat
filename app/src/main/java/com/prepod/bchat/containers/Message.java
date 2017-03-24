@@ -1,4 +1,4 @@
-package com.prepod.bchat;
+package com.prepod.bchat.containers;
 
 public class Message {
 

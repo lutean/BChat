@@ -1,9 +1,9 @@
-package com.prepod.bchat;
+package com.prepod.bchat.containers;
 
 public class Room {
 
     private String title;
-    private String lastMessage;
+    private String about;
     private long timeStamp;
 
     public String getTitle() {
@@ -14,12 +14,12 @@ public class Room {
         this.title = title;
     }
 
-    public String getLastMessage() {
-        return lastMessage;
+    public String getAbout() {
+        return about;
     }
 
-    public void setLastMessage(String lastMessage) {
-        this.lastMessage = lastMessage;
+    public void setAbout(String about) {
+        this.about = about;
     }
 
     public long getTimeStamp() {

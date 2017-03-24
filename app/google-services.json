@@ -15,11 +15,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "242172463375-olfk8vdk7b7nk2g5afjpi48sdtamlp8e.apps.googleusercontent.com",
+          "client_id": "242172463375-lb6bgik2scvplcd67cbi5noa8mdlgjht.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.prepod.bchat",
-            "certificate_hash": "EA1643CA71D50D7ADF963812BD24FE99E206290A"
+            "certificate_hash": "d36ec90fe823565658e5a8252b73ee7e84516e1c"
           }
         },
         {

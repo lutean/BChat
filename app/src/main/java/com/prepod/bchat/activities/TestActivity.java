@@ -1,4 +1,4 @@
-package com.prepod.bchat;
+package com.prepod.bchat.activities;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +14,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.prepod.bchat.R;
+import com.prepod.bchat.containers.User;
 
 public class TestActivity extends AppCompatActivity {
 
