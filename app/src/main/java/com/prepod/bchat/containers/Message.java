@@ -6,6 +6,7 @@ public class Message {
     private String name;
     private String userAvavatar;
     private String text;
+    private String imgUrl;
     private long timeStamp;
 
     public Message(){
@@ -56,5 +57,13 @@ public class Message {
 
     public void setUserAvavatar(String userAvavatar) {
         this.userAvavatar = userAvavatar;
+    }
+
+    public String getImgUrl() {
+        return imgUrl;
+    }
+
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
     }
 }

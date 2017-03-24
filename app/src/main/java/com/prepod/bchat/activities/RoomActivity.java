@@ -140,17 +140,20 @@ public class RoomActivity extends AppCompatActivity {
             protected void populateViewHolder(MessageViewHolder viewHolder, Message model, int position) {
                 viewHolder.senderTxt.setText(model.getName());
                 viewHolder.messageText.setText(model.getText());
-                Log.i("My!", "Text: " + model.getText() );
+                Log.i("My!", "Text: " + model.getText());
                 final ImageView messageImg = viewHolder.msgImage;
                 if (model.getUserAvavatar() != null) {
                     Glide.with(RoomActivity.this)
                             .load(model.getUserAvavatar())
                             .into(viewHolder.userAvatar);
                 }
-                if (model.getText().contains("http")){
-                    Log.i("My!", "Yes link");
-                    parseImage(model.getText(), viewHolder.msgImage);
+                if (!model.getImgUrl().equals("")) {
+                    viewHolder.msgImage.setVisibility(View.VISIBLE);
+                    Glide.with(RoomActivity.this)
+                            .load(model.getImgUrl())
+                            .into(viewHolder.msgImage);
                 }
+
 
             }
         };
@@ -219,7 +222,18 @@ public class RoomActivity extends AppCompatActivity {
         mSendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Message message = new Message(userName, userAvatar, mMessageEditText.getText().toString());
+                String text = mMessageEditText.getText().toString();
+                Message message = new Message();
+                message.setName(userName);
+                message.setUserAvavatar(userAvatar);
+                String imgUrl = parseImage(text);
+                if (!imgUrl.equals("")){
+                    message.setImgUrl(imgUrl);
+                    if (text.equals(imgUrl)) text = "";
+                } else {
+                    message.setImgUrl("");
+                }
+                message.setText(text);
                 roomReference.push().setValue(message);
                 mMessageEditText.setText("");
 
@@ -256,7 +270,7 @@ public class RoomActivity extends AppCompatActivity {
         Log.i("My!", "User updated " + room);
     }
 
-    private void parseImage(String url, ImageView imageView) {
+    private String parseImage(String url) {
 
         //String url = "hi there this is a URL String https://cs7060.userapi.com/c836525/v836525410/30fc2/Rs2GD47uIcQ.jpg";
 
@@ -271,15 +285,13 @@ public class RoomActivity extends AppCompatActivity {
                     || urlStr.contains(".png")
                     || urlStr.contains(".gif")) {
 
-                imageView.setVisibility(View.VISIBLE);
-                Glide.with(RoomActivity.this)
-                        .load(urlStr)
-                        .into(imageView);
+                return urlStr;
             }
             if (!urlStr.equals("")) {
-
+                return "";
             }
         }
+        return "";
     }
 
     private void showUsersListFragment() {
