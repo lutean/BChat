@@ -383,7 +383,7 @@ public class RoomActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         roomName = intent.getExtras().get("room").toString();
-        sharedUrl = intent.getExtras().getString("sharedUrl");  
+        sharedUrl = intent.getExtras().getString("sharedUrl");
         if (sharedUrl != null) {
             if (mMessageEditText != null) mMessageEditText.setText(sharedUrl);
         }

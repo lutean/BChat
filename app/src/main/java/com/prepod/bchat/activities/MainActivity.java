@@ -218,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                         Log.i("My!", "Room selected " + firebaseRecyclerAdapter.getItem(position).getTitle());
                         startActivity(intent);
+                        sharedUrl = null;
                     }
                 }
         ) {
