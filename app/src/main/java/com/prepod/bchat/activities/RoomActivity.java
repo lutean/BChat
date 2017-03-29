@@ -154,7 +154,14 @@ public class RoomActivity extends AppCompatActivity {
                     viewHolder.msgImage.setVisibility(View.VISIBLE);
                     Glide.with(RoomActivity.this)
                             .load(model.getImgUrl())
+                            .override(500, 500)
+                            .crossFade()
+                            .fitCenter()
                             .into(viewHolder.msgImage);
+                } else {
+                    Glide.clear(viewHolder.msgImage);
+                    viewHolder.msgImage.setImageDrawable(null);
+                    //viewHolder.msgImage.setVisibility(View.INVISIBLE);
                 }
 
 
