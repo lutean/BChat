@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.Image;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -18,10 +17,8 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -45,20 +42,14 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.prepod.bchat.DividerItemDecoration;
 import com.prepod.bchat.adapters.CustomFireBaseRecyclerAdapter;
-import com.prepod.bchat.adapters.RoomAdapter;
-import com.prepod.bchat.containers.Consts;
 import com.prepod.bchat.containers.Message;
 import com.prepod.bchat.containers.User;
 import com.prepod.bchat.fragments.AttachDialog;
 import com.prepod.bchat.fragments.UsersListDialog;
-import com.prepod.bchat.fragments.UsersListFragment;
 import com.prepod.bchat.interfaces.OnAttachSourceSelectListener;
 import com.prepod.bchat.interfaces.OnRoomItemClick;
 import com.prepod.bchat.R;
-
-import org.w3c.dom.ls.LSException;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -92,7 +83,7 @@ public class RoomActivity extends AppCompatActivity implements OnAttachSourceSel
     private List<Message> messageList = new ArrayList<>();
 
     private String sharedUrl;
-
+    private Uri sharedFileUri;
     private LinearLayout uploadImagePreviewContainer;
     private ImageView uploadImagePreview;
     private ProgressBar uploadProgress;
@@ -124,6 +115,7 @@ public class RoomActivity extends AppCompatActivity implements OnAttachSourceSel
 
         roomName = getIntent().getExtras().get("room").toString();
         sharedUrl = getIntent().getExtras().getString("sharedUrl");
+        sharedFileUri = getIntent().getParcelableExtra("sharedFileUri");
         Log.i("My!", "Room in " + roomName);
 
         TextView titleTxt = (TextView) findViewById(R.id.textTitle);
@@ -285,6 +277,10 @@ public class RoomActivity extends AppCompatActivity implements OnAttachSourceSel
 
         updateUser(roomName);
 
+        if (sharedFileUri != null){
+            chechUri(sharedFileUri);
+        }
+
     }
 
     private void sendMessage(){
@@ -346,18 +342,24 @@ public class RoomActivity extends AppCompatActivity implements OnAttachSourceSel
         String urlStr = "";
         while (m.find()) {
             urlStr = m.group();
-            if (urlStr.contains(".jpg")
-                    || urlStr.contains(".jpeg")
-                    || urlStr.contains(".png")
-                    || urlStr.contains(".gif")) {
+            if (checkUrlForImgType(urlStr)) return urlStr;
 
-                return urlStr;
-            }
             if (!urlStr.equals("")) {
                 return "";
             }
         }
         return "";
+    }
+
+    private boolean checkUrlForImgType(String urlStr){
+        if (urlStr.contains(".jpg")
+                || urlStr.contains(".jpeg")
+                || urlStr.contains(".png")
+                || urlStr.contains(".gif")) {
+
+            return true;
+        }
+        return false;
     }
 
     private void showUsersListFragment() {
@@ -480,38 +482,54 @@ public class RoomActivity extends AppCompatActivity implements OnAttachSourceSel
                 //progressUpload.setProgress(0);
                 //progressUpload.setVisibility(View.VISIBLE);
 
-                Bitmap bitmapPreview = BitmapFactory.decodeFile(fileSrc); //load preview image
+                preapreIamge(fileSrc);
 
-                //m_Image.setImageBitmap(bitmapPreview);/// загружать уменьшенную
-                int width = bitmapPreview.getWidth();
-                int height = bitmapPreview.getHeight();
-
-                float scaleSize = ((float) 600) / width;
-
-                Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmapPreview, (int) (bitmapPreview.getWidth() * scaleSize), (int) (bitmapPreview.getHeight() * scaleSize), true);
-                //m_Image.setImageBitmap(resizedBitmap);
-
-                uploadImagePreviewContainer.setVisibility(View.VISIBLE);
-                uploadImagePreview.setImageBitmap(resizedBitmap);
-
-                File file = new File(getApplicationInfo().dataDir, UUID.randomUUID().toString() + ".jpg");
-                try {
-                    FileOutputStream fos = null;
-                    try {
-                        fos = new FileOutputStream(file);
-                        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-                    } finally {
-                        if (fos != null) fos.close();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                    uploadPic(file);
             } else {
                 // Toast.makeText(NewPostActivity.this, getResources().getString(R.string.picture_not_sel), Toast.LENGTH_SHORT).show();}
             }
         }
+    }
+    private void chechUri(Uri fileSrc){
+        String res = "";
+        if (!checkUrlForImgType(fileSrc.getLastPathSegment())){
+            res = getRealPathFromURI(fileSrc);
+            preapreIamge(res);
+        } else {
+            preapreIamge(fileSrc.getPath());
+        }
+
+    }
+
+    private void preapreIamge(String fileSrc){
+
+        Bitmap bitmapPreview = BitmapFactory.decodeFile(fileSrc); //load preview image
+        if (bitmapPreview == null) return;
+        //m_Image.setImageBitmap(bitmapPreview);/// загружать уменьшенную
+        int width = bitmapPreview.getWidth();
+        int height = bitmapPreview.getHeight();
+
+        float scaleSize = ((float) 600) / width;
+
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmapPreview, (int) (bitmapPreview.getWidth() * scaleSize), (int) (bitmapPreview.getHeight() * scaleSize), true);
+        //m_Image.setImageBitmap(resizedBitmap);
+
+        uploadImagePreviewContainer.setVisibility(View.VISIBLE);
+        uploadImagePreview.setImageBitmap(resizedBitmap);
+
+        File file = new File(getApplicationInfo().dataDir, UUID.randomUUID().toString() + ".jpg");
+        try {
+            FileOutputStream fos = null;
+            try {
+                fos = new FileOutputStream(file);
+                resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            } finally {
+                if (fos != null) fos.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        uploadPic(file);
     }
 
     @SuppressWarnings("VisibleForTests")
@@ -556,5 +574,20 @@ public class RoomActivity extends AppCompatActivity implements OnAttachSourceSel
                 Log.v("My!", " " + downloadUrl);
             }
         });
+    }
+
+    private String getRealPathFromURI(Uri contentURI) {
+        //Uri contentURI = Uri.parse(contentURIstr);
+        String result;
+        Cursor cursor = getContentResolver().query(contentURI, null, null, null, null);
+        if (cursor == null) { // Source is Dropbox or other similar local file path
+            result = contentURI.getPath();
+        } else {
+            cursor.moveToFirst();
+            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+            result = cursor.getString(idx);
+            cursor.close();
+        }
+        return result;
     }
 }

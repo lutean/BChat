@@ -74,7 +74,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private LinearLayoutManager linearLayoutManager;
 
-    private  String sharedUrl;
+    private String sharedUrl;
+    private Uri sharedFileUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +89,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type)) {
                 sharedUrl = intent.getStringExtra(Intent.EXTRA_TEXT);
+            }  else if (type.startsWith("image/")) {
+                Uri imageUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                if (imageUri != null) {
+                    Log.v("my!", "" + imageUri);
+                    String s = imageUri.getPath();
+                    sharedFileUri = imageUri;
+                }
+
             }
         }
                 toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -215,10 +224,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         intent.putExtra("title", firebaseRecyclerAdapter.getItem(position).getTitle());
                         if (sharedUrl != null){
                             intent.putExtra("sharedUrl", sharedUrl);
+                        } else if (sharedFileUri != null){
+                            intent.putExtra("sharedFileUri", sharedFileUri);
                         }
                         Log.i("My!", "Room selected " + firebaseRecyclerAdapter.getItem(position).getTitle());
                         startActivity(intent);
                         sharedUrl = null;
+                        sharedFileUri = null;
                     }
                 }
         ) {
@@ -396,7 +408,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type)) {
                 sharedUrl = intent.getStringExtra(Intent.EXTRA_TEXT);
+            } else if (type.startsWith("image/")) {
+                Uri imageUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                if (imageUri != null) {
+                    // Update UI to reflect image being shared
+                    Log.v("my!", "" + imageUri);
+                    String s = imageUri.getPath();
+                    sharedFileUri = imageUri;
+                }
+
             }
+
         }
     }
 
