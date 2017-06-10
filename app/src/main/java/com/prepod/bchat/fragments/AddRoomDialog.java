@@ -10,7 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
-import com.prepod.bchat.interfaces.OnAddRoom;
+import com.prepod.bchat.interfaces.OnRoomManipulation;
 import com.prepod.bchat.R;
 
 /**
@@ -19,7 +19,7 @@ import com.prepod.bchat.R;
 
 public class AddRoomDialog extends DialogFragment {
 
-    private OnAddRoom listener;
+    private OnRoomManipulation listener;
 
 
     @Override
@@ -52,7 +52,7 @@ public class AddRoomDialog extends DialogFragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            listener = (OnAddRoom) activity;
+            listener = (OnRoomManipulation) activity;
         } catch (ClassCastException e){
 
         }

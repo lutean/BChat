@@ -25,6 +25,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.prepod.bchat.R;
 
+import java.security.AuthProvider;
+
 public class AuthActivity extends AppCompatActivity {
 
     private FirebaseAuth firebaseAuth;
@@ -85,6 +87,7 @@ public class AuthActivity extends AppCompatActivity {
                 });
 
     }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {

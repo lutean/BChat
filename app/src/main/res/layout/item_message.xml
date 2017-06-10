@@ -10,45 +10,44 @@
     android:layout_marginBottom="@dimen/activity_vertical_margin">
 
     <LinearLayout
-        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        >
+        android:orientation="horizontal">
 
         <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/userAvatar"
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:id="@+id/userAvatar"
-            android:src="@mipmap/ic_launcher"/>
+            android:src="@mipmap/ic_launcher" />
 
         <LinearLayout
-            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
             android:gravity="center_vertical"
-            android:layout_marginLeft="10dp">
+            android:orientation="vertical">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
                 android:id="@+id/senderTextView"
-                android:layout_weight="0"/>
-
-            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#000000"
-                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:layout_weight="0"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+
+            <TextView
                 android:id="@+id/messageTextView"
-                android:layout_weight="0"/>
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="#000000" />
 
             <ImageView
                 android:id="@+id/message_image"
-                android:scaleType="centerCrop"
-
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+
+                android:layout_height="wrap_content"
+                android:scaleType="centerCrop" />
         </LinearLayout>
 
     </LinearLayout>

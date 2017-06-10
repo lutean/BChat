@@ -1,16 +1,15 @@
 package com.prepod.bchat.activities;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.graphics.Palette;
@@ -43,18 +42,18 @@ import com.google.firebase.database.ValueEventListener;
 import com.prepod.bchat.DividerItemDecoration;
 import com.prepod.bchat.containers.Consts;
 import com.prepod.bchat.adapters.CustomFireBaseRecyclerAdapter;
-import com.prepod.bchat.interfaces.OnAddRoom;
+import com.prepod.bchat.containers.DeleteBtnHolder;
+import com.prepod.bchat.fragments.DeleteRoomDialog;
+import com.prepod.bchat.interfaces.OnRoomManipulation;
 import com.prepod.bchat.interfaces.OnRoomItemClick;
 import com.prepod.bchat.R;
 import com.prepod.bchat.containers.Room;
 import com.prepod.bchat.containers.User;
 import com.prepod.bchat.fragments.AddRoomDialog;
 
-import java.util.concurrent.ExecutionException;
-
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnAddRoom {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnRoomManipulation {
 
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
@@ -77,6 +76,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String sharedUrl;
     private Uri sharedFileUri;
 
+    private String deleteRoomKey;
+
+    private DeleteBtnHolder deleteBtnHolder;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type)) {
                 sharedUrl = intent.getStringExtra(Intent.EXTRA_TEXT);
-            }  else if (type.startsWith("image/")) {
+            } else if (type.startsWith("image/")) {
                 Uri imageUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
                 if (imageUri != null) {
                     Log.v("my!", "" + imageUri);
@@ -99,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             }
         }
-                toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -111,14 +114,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
-          final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ImageView backBtn = (ImageView) findViewById(R.id.back_btn);
         backBtn.setVisibility(View.VISIBLE);
         backBtn.setImageResource(R.drawable.ic_menu_white_24dp);
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               drawer.openDrawer(Gravity.LEFT);
+                drawer.openDrawer(Gravity.LEFT);
             }
         });
 //        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -153,14 +156,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .addApi(Auth.GOOGLE_SIGN_IN_API)
                 .build();
 
-        if (firebaseUser == null){
+        if (firebaseUser == null) {
             startActivity(new Intent(this, AuthActivity.class));
             finish();
             return;
         } else {
             userName = firebaseUser.getDisplayName();
             navUserName.setText(userName);
-            if (firebaseUser.getPhotoUrl() != null){
+            if (firebaseUser.getPhotoUrl() != null) {
                 userAvatar = firebaseUser.getPhotoUrl().toString();
                 Glide.with(MainActivity.this)
                         .load(userAvatar)
@@ -187,21 +190,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         Log.i("My!", "User logined " + userName);
-            firebaseDatabaseRefer.child("users").child(firebaseUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    user = dataSnapshot.getValue(User.class);
-                    if (user != null && user.isAdmin())
-                        fab.setVisibility(View.VISIBLE);
-                    updateUser();
-                    Log.i("", "" + user);
-                }
+        firebaseDatabaseRefer.child("users").child(firebaseUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                user = dataSnapshot.getValue(User.class);
+                if (user != null && user.isAdmin())
+                    fab.setVisibility(View.VISIBLE);
+                updateUser();
+                Log.i("", "" + user);
+            }
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Log.v("", "");
-                }
-            });
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.v("", "");
+            }
+        });
 
 
         //mDatabase.child("users").child(userId).child("username").setValue(name);
@@ -209,6 +212,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         //linearLayoutManager.setStackFromEnd(true);
+        deleteBtnHolder = new DeleteBtnHolder();
 
         firebaseRecyclerAdapter = new CustomFireBaseRecyclerAdapter<Room, RoomsViewHolder>(
                 Room.class,
@@ -218,19 +222,43 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 new OnRoomItemClick() {
                     @Override
                     public void onClick(int position) {
-                       // Log.v("My" , "");
+                        // Log.v("My" , "");
+                        if (deleteBtnHolder.getDelBtn() != null) {
+                            deleteBtnHolder.getDelBtn().setVisibility(View.INVISIBLE);
+                        }
                         Intent intent = new Intent(MainActivity.this, RoomActivity.class);
                         intent.putExtra("room", firebaseRecyclerAdapter.getRef(position).getKey());
                         intent.putExtra("title", firebaseRecyclerAdapter.getItem(position).getTitle());
-                        if (sharedUrl != null){
+                        if (sharedUrl != null) {
                             intent.putExtra("sharedUrl", sharedUrl);
-                        } else if (sharedFileUri != null){
+                        } else if (sharedFileUri != null) {
                             intent.putExtra("sharedFileUri", sharedFileUri);
                         }
                         Log.i("My!", "Room selected " + firebaseRecyclerAdapter.getItem(position).getTitle());
                         startActivity(intent);
                         sharedUrl = null;
                         sharedFileUri = null;
+                    }
+
+                    @Override
+                    public void onDeleteBtnClick(int position) {
+                        DeleteRoomDialog dialog = new DeleteRoomDialog();
+                        dialog.show(getFragmentManager(), "");
+                        deleteRoomKey = firebaseRecyclerAdapter.getRef(position).getKey();
+                    }
+
+                    @Override
+                    public void onLongClick(ImageView btn) {
+                        if (user != null & user.isAdmin()) {
+                            btn.setVisibility(btn.getVisibility() == View.VISIBLE ? View.INVISIBLE : View.VISIBLE);
+
+                            if (deleteBtnHolder.getDelBtn() != null && !deleteBtnHolder.getDelBtn().equals(btn)) {
+                                deleteBtnHolder.getDelBtn().setVisibility(View.INVISIBLE);
+                            }
+                            deleteBtnHolder.setDelBtn(btn);
+                            Vibrator v = (Vibrator) MainActivity.this.getSystemService(Context.VIBRATOR_SERVICE);
+                            v.vibrate(100);
+                        }
                     }
                 }
         ) {
@@ -254,7 +282,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 int lastVisiblePos = linearLayoutManager.findFirstCompletelyVisibleItemPosition();
                 if (lastVisiblePos == -1 ||
                         (positionStart >= (messageCount - 1) &&
-                        lastVisiblePos == (positionStart - 1))){
+                                lastVisiblePos == (positionStart - 1))) {
 
                 }
             }
@@ -311,7 +339,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    private void updateUser(){
+    private void deleteRoom() {
+        if (deleteRoomKey != null) {
+            firebaseDatabaseRefer.child(Consts.ROOMS_CHILD).child(deleteRoomKey).removeValue();
+            firebaseDatabaseRefer.child(Consts.MESSAGES_CHILD).child(deleteRoomKey).removeValue();
+        }
+    }
+
+    private void updateUser() {
         User updateUser = new User(userName, firebaseUser.getEmail(), userAvatar);
         if (this.user != null) {
             updateUser.setAdmin(this.user.isAdmin());
@@ -347,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return super.onOptionsItemSelected(item);
     }
 
-    private void logOut(){
+    private void logOut() {
         firebaseAuth.signOut();
         Auth.GoogleSignInApi.signOut(googleApiClient);
         firebaseAuth = null;
@@ -360,7 +395,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.nav_logout:
                 logOut();
                 break;
@@ -375,6 +410,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         room.setAbout(desc);
         room.setTimeStamp(System.currentTimeMillis());
         firebaseDatabaseRefer.child(Consts.ROOMS_CHILD).push().setValue(room);
+    }
+
+    @Override
+    public void onDelete() {
+        deleteRoom();
     }
 
     private void setNavColor(Bitmap bitmap) {
@@ -422,7 +462,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    public static class RoomsViewHolder extends RecyclerView.ViewHolder{
+    public static class RoomsViewHolder extends RecyclerView.ViewHolder {
 
         public ImageView userAvatar;
         public TextView titleTxt;
@@ -430,6 +470,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         public TextView lastMessageDate;
         public LinearLayout itemRoomLayout;
         private OnRoomItemClick lisener;
+        private ImageView delBtn;
 
         public RoomsViewHolder(View itemView, final OnRoomItemClick listener) {
             super(itemView);
@@ -437,10 +478,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             titleTxt = (TextView) itemView.findViewById(R.id.roomTitleTextView);
             lastMessage = (TextView) itemView.findViewById(R.id.lastMessageTextView);
             itemRoomLayout = (LinearLayout) itemView.findViewById(R.id.itemRoom);
+            delBtn = (ImageView) itemView.findViewById(R.id.delete_btn);
+
+            delBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onDeleteBtnClick(getAdapterPosition());
+                }
+            });
+
             itemRoomLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     listener.onClick(getAdapterPosition());
+
+                }
+            });
+            itemRoomLayout.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    listener.onLongClick(delBtn);
+                    return true;
                 }
             });
         }
