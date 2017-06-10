@@ -10,3 +10,6 @@
 gradlew.bat
 gradlew
 /gradle
+app/build
+app/google-services.json
+app/libs
